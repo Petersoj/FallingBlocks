@@ -1,0 +1,5 @@
+author: Petersoj
+name: FallingBlocks
+version: 1.5
+main: me.petersoj.FallingBlocks
+description: Adds Falling blocks and regeneration when an explosion happens
