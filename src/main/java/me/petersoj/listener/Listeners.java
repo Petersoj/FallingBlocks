@@ -1,10 +1,14 @@
 package me.petersoj.listener;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Effect;
+import org.bukkit.block.Block;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import me.petersoj.FallingBlocks;
@@ -40,5 +44,15 @@ public class Listeners implements Listener {
 		}
 		
 		controller.createExplosion(e.blockList(), e.getBlock().getLocation());
+	}
+
+	@EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled = true) // Happens very last to check if cancelled
+	public void onEntityChangeBlock(EntityChangeBlockEvent e){
+		Block block = e.getBlock();
+		if(plugin.getBlocksController().getFallingBlocks().contains(e.getEntity())){
+			plugin.getBlocksController().getFallingBlocks().remove(e.getEntity());
+			block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, ((FallingBlock)e.getEntity()).getBlockId());
+			e.setCancelled(true);
+		}
 	}
 }

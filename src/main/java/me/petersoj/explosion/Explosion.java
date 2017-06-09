@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.Bukkit;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -22,6 +22,7 @@ public class Explosion {
 	private BlocksController blockController;
 	
 	private ArrayList<BlockState> explodedBlocks;
+	private ArrayList<BlockState> dropTypeBlocks;
 	private Location center;
 	private double radius = 1.0;
 	
@@ -29,6 +30,7 @@ public class Explosion {
 		this.blockController = blockController;
 		
 		this.explodedBlocks = new ArrayList<BlockState>();
+		this.dropTypeBlocks = new ArrayList<BlockState>();
 		this.center = center;
 		
 		this.setupExplosion(blockList);
@@ -39,14 +41,18 @@ public class Explosion {
 		double maxRadius = 1;
 		
 		for(int i = 0; i < blockList.size(); i++){
-			BlockState state = blockList.get(i).getState();
+			Block block = blockList.get(i);
+			
+			BlockState state = block.getState();
 			
 			double distanceSquared = state.getLocation().distanceSquared(center);
 			if(distanceSquared > maxRadius){
 				maxRadius = distanceSquared;
 			}
 			
-			radius = maxRadius;
+			radius = Math.sqrt(maxRadius);
+			
+			block.setType(Material.AIR, false);
 			
 			explodedBlocks.add(state);
 		}
@@ -74,7 +80,7 @@ public class Explosion {
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 		
 		for(BlockState blockState : explodedBlocks){
-			if(isDropType(blockState.getType()) && random.nextInt(1, 101) <= spawnChance){
+			if(blockState.getType().isBlock() && random.nextInt(1, 101) <= spawnChance){
 				Location fallingBlockLoc = blockState.getLocation();
 				
 				FallingBlock fallingBlock = (FallingBlock) fallingBlockLoc.getWorld().spawnFallingBlock(fallingBlockLoc, blockState.getData());
@@ -91,11 +97,48 @@ public class Explosion {
 	
 	private void startBlockRegen(boolean particles, int delay, int interval, boolean randomSpawn){
 		new BukkitRunnable() {
-			@Override
+			int index = 0;
+			ThreadLocalRandom random = ThreadLocalRandom.current();
+			
 			public void run() {
+				if(index >= explodedBlocks.size()){
+					for(BlockState state : dropTypeBlocks){
+						state.update(true, false);
+					}
+					this.cancel();
+					return;
+				}
 				
+				if(randomSpawn){
+					if(random.nextInt(1, 11) < 7){ // 70 percent chance
+						regenBlock(explodedBlocks.get(index++));
+					}
+				}else{
+					regenBlock(explodedBlocks.get(index++));
+				}
 			}
-		}.runTaskTimer(blockController.getPlugin(), delay, interval);
+		}.runTaskTimer(blockController.getPlugin(), delay * 20, interval);
+	}
+	
+	private Vector getNewFallingBlockVector(Location blockLocation){
+		Vector blockDirection = blockLocation.toVector().subtract(center.toVector());
+		
+		double divide = radius / blockDirection.lengthSquared();
+		blockDirection.divide(new Vector(divide, divide, divide));
+		
+		blockDirection.setY(Math.abs(blockDirection.getY()));
+		
+		return blockDirection.normalize();
+	}
+	
+	private void regenBlock(BlockState blockState){
+		if(isDropType(blockState.getType())){
+			dropTypeBlocks.add(blockState);
+		}else{
+			Location stateLocation = blockState.getLocation();
+			blockState.update(true, false);
+			stateLocation.getWorld().playEffect(stateLocation, Effect.STEP_SOUND, blockState.getTypeId());
+		}
 	}
 	
 	private boolean isDropType(Material type){
@@ -107,21 +150,9 @@ public class Explosion {
 		return false;
 	}
 	
-	private Vector getNewFallingBlockVector(Location blockLocation){
-		Vector blockDirection = blockLocation.toVector().subtract(blockLocation.toVector());
-		
-		double divide = radius / blockDirection.lengthSquared();
-		blockDirection.divide(new Vector(divide, divide, divide));
-		
-		blockDirection.setY(Math.abs(blockDirection.getY()));
-		
-		return blockDirection.normalize();
-	}
-	
 	
 	private static final Material[] DROP_TYPES = {
 			Material.SAPLING,
-			Material.GRASS,
 			Material.LONG_GRASS,
 			Material.DEAD_BUSH,
 			Material.YELLOW_FLOWER,
