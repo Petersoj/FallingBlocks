@@ -41,5 +41,4 @@ public class Listeners implements Listener {
 		
 		controller.createExplosion(e.blockList(), e.getBlock().getLocation());
 	}
-
 }
