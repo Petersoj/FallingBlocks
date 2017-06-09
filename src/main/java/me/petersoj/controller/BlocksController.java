@@ -6,7 +6,6 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.FallingBlock;
 
 import me.petersoj.FallingBlocks;
 import me.petersoj.explosion.Explosion;
@@ -15,7 +14,7 @@ public class BlocksController {
 	
 	private FallingBlocks plugin;
 	
-	private ArrayList<FallingBlock> fallingBlocks;
+	private ArrayList<Explosion> explosions;
 	private boolean particles;
 	private int delay;
 	private int interval;
@@ -27,7 +26,7 @@ public class BlocksController {
 	
 	public BlocksController(FallingBlocks plugin){
 		this.plugin = plugin;
-		this.fallingBlocks = new ArrayList<FallingBlock>();
+		this.explosions = new ArrayList<Explosion>();
 	}
 	
 	public void start(){
@@ -48,6 +47,7 @@ public class BlocksController {
 	
 	public void createExplosion(List<Block> blockList, Location center){
 		Explosion explosion = new Explosion(this, blockList, center);
+		explosions.add(explosion);
 		explosion.explode(particles, delay, interval, spawnChance, randomRespawn, regenTerrain, spawnFallingBlocks);
 	}
 	
@@ -55,8 +55,8 @@ public class BlocksController {
 		return plugin;
 	}
 	
-	public ArrayList<FallingBlock> getFallingBlocks(){
-		return fallingBlocks;
+	public ArrayList<Explosion> getExplosions(){
+		return explosions;
 	}
 	
 	public boolean doDrops(){

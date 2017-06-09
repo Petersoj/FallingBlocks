@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 
 import me.petersoj.FallingBlocks;
 import me.petersoj.controller.BlocksController;
+import me.petersoj.explosion.Explosion;
 
 public class Listeners implements Listener {
 	
@@ -50,10 +51,13 @@ public class Listeners implements Listener {
 	@EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled = true) // Happens very last to check if cancelled
 	public void onEntityChangeBlock(EntityChangeBlockEvent e){
 		Block block = e.getBlock();
-		if(plugin.getBlocksController().getFallingBlocks().contains(e.getEntity())){
-			plugin.getBlocksController().getFallingBlocks().remove(e.getEntity());
-			block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, ((FallingBlock)e.getEntity()).getBlockId());
-			e.setCancelled(true);
+		
+		for(Explosion explosion : plugin.getBlocksController().getExplosions()){
+			if(explosion.getFallingBlocks().contains(e.getEntity())){
+				explosion.getFallingBlocks().remove(e.getEntity());
+				block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, ((FallingBlock)e.getEntity()).getBlockId());
+				e.setCancelled(true);
+			}
 		}
 	}
 }

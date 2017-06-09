@@ -23,6 +23,7 @@ public class Explosion {
 	
 	private ArrayList<BlockState> explodedBlocks;
 	private ArrayList<BlockState> dropTypeBlocks;
+	private ArrayList<FallingBlock> fallingBlocks;
 	private Location center;
 	private double radius = 1.0;
 	
@@ -31,6 +32,7 @@ public class Explosion {
 		
 		this.explodedBlocks = new ArrayList<BlockState>();
 		this.dropTypeBlocks = new ArrayList<BlockState>();
+		this.fallingBlocks = new ArrayList<FallingBlock>();
 		this.center = center;
 		
 		this.setupExplosion(blockList);
@@ -90,7 +92,7 @@ public class Explosion {
 				fallingBlock.setInvulnerable(true);
 				fallingBlock.setSilent(true);
 				
-				blockController.getFallingBlocks().add(fallingBlock);
+				fallingBlocks.add(fallingBlock);
 			}
 		}
 	}
@@ -102,9 +104,14 @@ public class Explosion {
 			
 			public void run() {
 				if(index >= explodedBlocks.size()){
+					
 					for(BlockState state : dropTypeBlocks){
 						state.update(true, false);
 					}
+					
+					fallingBlocks.clear();
+					removeExplosion();
+					
 					this.cancel();
 					return;
 				}
@@ -149,6 +156,15 @@ public class Explosion {
 			}
 		}
 		return false;
+	}
+	
+	// Method needed for outside reference of Runnable
+	private void removeExplosion(){
+		blockController.getExplosions().remove(this);
+	}
+	
+	public ArrayList<FallingBlock> getFallingBlocks(){
+		return fallingBlocks;
 	}
 	
 	
