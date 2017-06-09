@@ -131,6 +131,7 @@ public class Explosion {
 		return blockDirection.normalize();
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void regenBlock(BlockState blockState){
 		if(isDropType(blockState.getType())){
 			dropTypeBlocks.add(blockState);

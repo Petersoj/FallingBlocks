@@ -46,6 +46,7 @@ public class Listeners implements Listener {
 		controller.createExplosion(e.blockList(), e.getBlock().getLocation());
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled = true) // Happens very last to check if cancelled
 	public void onEntityChangeBlock(EntityChangeBlockEvent e){
 		Block block = e.getBlock();
